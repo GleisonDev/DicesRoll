@@ -4,7 +4,7 @@ from discord.ext import commands
 import os
 
 # Configurações do bot
-TOKEN = 'Token do Bot'
+TOKEN = 'Token do bot'
 PREFIX = '.'
 
 intents = discord.Intents.default()
@@ -89,6 +89,10 @@ async def r(ctx, quant: int = 1, lados: str = 'd10', modif: int = 0):
     try:
         response = await bot.wait_for('message', check=check_dados, timeout=30.0)
         number = int(response.content)
+
+        if ctx.author.nick is None:
+            ctx.author.nick = ctx.author.name
+
         resultados = []
         sucessos = []
         falhas = []
@@ -148,6 +152,9 @@ async def d(ctx, quant: int = 1, lados: str = 'd10', modif: int = 0):
         return soma + modif
 
     try:
+        if ctx.author.nick is None:
+            ctx.author.nick = ctx.author.name
+
         resultados = []
 
         if lados == 'd4':
