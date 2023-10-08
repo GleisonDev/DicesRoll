@@ -1,6 +1,7 @@
 import discord
 import random
 from discord.ext import commands
+import os
 
 # Configurações do bot
 TOKEN = 'Token do Bot'
@@ -17,7 +18,7 @@ async def on_ready():
 
 
 @bot.command()
-async def r(ctx, quant: int = 1, lados: str = 'd10'):
+async def r(ctx, quant: int = 1, lados: str = 'd10', modif: int = 0):
     await ctx.send('Qual a dificuldade do teste?  ')
 
     def check_dados(message):
@@ -59,21 +60,39 @@ async def r(ctx, quant: int = 1, lados: str = 'd10'):
 
     def rolagem_d20():
         for i in range(quant):
-            resultado = random.randint(1, 20)
-            resultados.append(resultado)
-            if resultado >= number:
-                sucessos.append(resultado)
+            soma = 0
+            if modif == 0:
+                resultado = random.randint(1, 20)
+                resultados.append(resultado)
+            else:
+                resultado = random.randint(1, 20)
+                resultados.append(resultado)
+                modificador = modif
+                modificadores.append(modificador)
+                soma = resultado + modif
+            if soma > 0 and soma >= number:
+                sucessos.append(soma)
+            elif soma == 0 and resultado >= number:
+                sucessos.append(resultado) 
+
+    def somar_resultado_modif():
+        soma_resultado = resultados[0] + modificadores[0]
+        return soma_resultado 
 
     def checar_rolagem_d20():
         quantidade_sucessos = len(sucessos)
         return quantidade_sucessos
 
+    def formatar_lista(lista):
+        lista_formatada = ', '.join(map(str, lista))
+        return lista_formatada    
     try:
         response = await bot.wait_for('message', check=check_dados, timeout=30.0)
         number = int(response.content)
         resultados = []
         sucessos = []
         falhas = []
+        modificadores = []
         if lados == 'd10':
             rolagem_d10()
             resultado_jogada = checar_rolagem_d10()
@@ -81,7 +100,10 @@ async def r(ctx, quant: int = 1, lados: str = 'd10'):
             rolagem_d20()
             resultado_jogada = checar_rolagem_d20()
 
-        await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados}')
+        if modif == 0:
+            await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados}')
+        else:
+            await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados}  +{modif}{os.linesep}{ctx.author.nick} conseguiu um {somar_resultado_modif()} na jogada!')
 
         if resultado_jogada == 'falha' or resultado_jogada == 0:
             await ctx.send(f'{ctx.author.nick} falhou no teste!')
@@ -140,8 +162,10 @@ async def d(ctx, quant: int = 1, lados: str = 'd10', modif: int = 0):
         elif lados == 'd12':
             rolagem_d12()
             quantidade_dano = rolagem_dano()
-
-        await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados}')
+        if modif == 0:
+            await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados}')
+        else:
+            await ctx.send(f'Os resultados de {ctx.author.nick} são: {resultados} +{modif}') 
         await ctx.send(f'{ctx.author.nick} causou {quantidade_dano} de dano!')
 
     except TimeoutError:
